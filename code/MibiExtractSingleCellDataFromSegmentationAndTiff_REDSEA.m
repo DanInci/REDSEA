@@ -9,19 +9,19 @@
 
 
 % Main path for the all the data
-mainPath = 'sampleData_MIBI'; %for MIBI
-%mainPath = 'sampleData_cycIF'; %for CyCIF
+inputPath = 'sampleData_MIBI'; % 'sampleData_cycIF'; %for CyCIF
+outputPath = 'sampleData_MIBI'; % define other folder if wanted
 
 % This is a csv file for your channel labels within
-massDS = dataset('File',[mainPath,'/sampleData.csv'],'Delimiter',',');
+massDS = dataset('File',[inputPath,'/channels.csv'],'Delimiter',',');
 
-% This assumes the path points to a folder containing all the Points from 
-% the run. Your segmentationParams.mat from each point should be in the 
-% each Point's folder
-pathTiff = [mainPath,'/originalTiff']; 
+% This assumes the path points to folders containing all the Points 
+% from the run.
+pathTiff = [inputPath,'/images'];
+pathMask = [inputPath,'/masks'];
 
 % This is where the FCS file output will go to
-pathResults = [mainPath,'/FCS_output'];
+pathResults = [outputPath,'/FCS_output'];
 
 % Select the channels that are expected to be expressed. Cells with minimal
 % expression of at least one of these channels will be removed
@@ -62,12 +62,12 @@ end
 % default=0 for not, 1 for plotting.
 % Note that if multiple channels selected (in normChannels), to plot out all
 % the sanity plots need long time.
-plotSanityPlots = 0;
+plotSanityPlots = 1;
 
 %%
 mkdir(pathResults);
 
-for p=1:1
+for p=1:4
     disp(['point',num2str(p)]);
     pointNumber = p;
     % load tiffs to recreate countsNoNoise
@@ -79,11 +79,11 @@ for p=1:1
     end
         
     % load segmentation file
-    load([pathTiff, '/Point', num2str(pointNumber), '/segmentationParams.mat']);
-    labelNum = max(max(newLmod));
+    load([pathMask, '/Point', num2str(pointNumber), '.mat']);
+    labelNum = max(max(newLmod)); 
     channelNum = length(massDS);
     stats = regionprops(newLmod,'Area','PixelIdxList'); % Stats on cell size. Region props is DF with cell location by count
-    countsReshape= reshape(countsNoNoise,size(countsNoNoise,1)*size(countsNoNoise,2),channelNum);
+    countsReshape = reshape(countsNoNoise,size(countsNoNoise,1)*size(countsNoNoise,2),channelNum);
     
     % make a data matrix the size of the number of labels x the number of markers
     % Include one more marker for cell size
@@ -120,11 +120,13 @@ for p=1:1
     % 1.positive nuclear identity (cells)
     % 2.that have enough information in the clustering channels to be
     % clustered
+
+    % in order to remove positive nuclear filter replace with -> ones(labelNum,1);
     labelIdentityNew2 = labelIdentityNew([1:end-1]); % fix bug resulting from previous script
     sumDataScaleSizeInClusterChannels = sum(dataScaleSize(:,clusterChannelsInds),2);
     labelIdentityNew2(sumDataScaleSizeInClusterChannels<0.1) = 2;
     
-    dataCells = data(labelIdentityNew2==1,:);
+   dataCells = data(labelIdentityNew2==1,:);
     dataScaleSizeCells = dataScaleSize(labelIdentityNew2==1,:);
     dataCompenCells = dataCompen(labelIdentityNew2==1,:);
     dataCompenScaleSizeCells = dataCompenScaleSize(labelIdentityNew2==1,:);
@@ -167,6 +169,11 @@ for p=1:1
     writeFCS([outputPath,'/dataScaleSizeFCS.fcs'],dataScaleSizeL,TEXT);
     writeFCS([outputPath,'/dataRedSeaFCS.fcs'],dataCompenL,TEXT);
     writeFCS([outputPath,'/dataRedSeaScaleSizeFCS.fcs'],dataCompenScaleSizeL,TEXT);
+
+    writecell([channelLabelsForFCS'; num2cell(dataL)], [outputPath,'/dataFCS.csv']);
+    writecell([channelLabelsForFCS'; num2cell(dataScaleSizeL)], [outputPath,'/dataScaleSizeFCS.csv']);
+    writecell([channelLabelsForFCS'; num2cell(dataCompenL)], [outputPath,'/dataRedSeaFCS.csv']);
+    writecell([channelLabelsForFCS'; num2cell(dataCompenScaleSizeL)], [outputPath,'/dataRedSeaScaleSizeFCS.csv']);
 
     % writeFCS([outputPath,'/dataTransFCS.fcs'],dataTransL,TEXT);
     % writeFCS([outputPath,'/dataScaleSizeTransFCS.fcs'],dataScaleSizeTransL,TEXT);
