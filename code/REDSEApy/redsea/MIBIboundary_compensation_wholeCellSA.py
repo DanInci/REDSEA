@@ -18,7 +18,9 @@ def MIBIboundary_compensation_wholeCellSA(newLmod, MIBIdata, channel_norm_identi
     # divide to get fraction
     cell_boundary_total_matrix = np.tile(cell_boundary_total, (n_cells, 1))
     # cellBoundaryTotalMatrix = repmat(cellBoundaryTotal',[1 cellNum]);
-    cell_pair_norm = (REDSEAChecker + 1) * np.identity(n_cells) - cell_pair_map / cell_boundary_total_matrix
+    cell_pair_divided = cell_pair_map / cell_boundary_total_matrix
+    cell_pair_divided = np.nan_to_num(cell_pair_divided)  # fix replace any NaN with 0
+    cell_pair_norm = (REDSEAChecker + 1) * np.identity(n_cells) - cell_pair_divided
     cell_pair_norm = np.transpose(cell_pair_norm)  # this is a weird bug in python, need to transpose
 
     # perform signal compensation on the whole cell
