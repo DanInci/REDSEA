@@ -41,6 +41,8 @@ def extract_cell_information(newLmod, counts_no_noise):
     data = np.zeros((n_cells, n_channels))
     data_scale_size = np.zeros((n_cells, n_channels))
     cell_sizes = np.zeros((n_cells, 1))
+    cell_radius = np.zeros((n_cells, 1))
+    cell_coords = np.zeros((n_cells, 2))
 
     # get the regional props for all the labels
     stats = skimage.measure.regionprops(newLmod)
@@ -51,5 +53,7 @@ def extract_cell_information(newLmod, counts_no_noise):
         data[i, 0:n_channels] = np.sum(label_counts, axis=0)  # sum the counts for this cell
         data_scale_size[i, 0:n_channels] = np.sum(label_counts, axis=0) / stats[i].area  # scaled by size
         cell_sizes[i] = stats[i].area  # cell sizes
+        cell_radius[i] = np.sqrt(stats[i].area / np.pi)  # cell radius
+        cell_coords[i] = stats[i].centroid  # cell coords
 
-    return data, data_scale_size, cell_sizes
+    return data, data_scale_size, cell_sizes, cell_radius, cell_coords

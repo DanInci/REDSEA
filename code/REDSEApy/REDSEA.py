@@ -44,7 +44,7 @@ def run_compensation(channels_path, tiff_path, mask_path, norm_channels,
     n_labels = np.max(newLmod)  # how many labels/cells
 
     # this part extract counts data from the whole cell regions, for each individual cells etc
-    data, data_scale_size, cell_sizes = extract_cell_information(newLmod, counts_no_noise)
+    data, data_scale_size, cell_sizes, cell_radius, cell_coords = extract_cell_information(newLmod, counts_no_noise)
 
     # now we start the boundary compensation part of code in MATLAB function:
     if boundary_mod == 1:
@@ -80,12 +80,25 @@ def run_compensation(channels_path, tiff_path, mask_path, norm_channels,
     labels_vector = np.where(label_identity == 1)
     labels_vector = [item + 1 for item in labels_vector]  # python indexing difference need to add 1
 
+    # get cell radius
+    cell_radius_vector = cell_radius[label_identity == 1]
+    cell_radius_vector = [item for sublist in cell_radius_vector for item in sublist]  # flat the list
+
     # get cell sizes
     cell_sizes_vector = cell_sizes[label_identity == 1]
     cell_sizes_vector = [item for sublist in cell_sizes_vector for item in sublist]  # flat the list
 
+    # get coords
+    cell_coords_vector = cell_coords[label_identity == 1]
+
     # Cell Metadata
-    cells_metadata_df = pd.DataFrame({'cell_label': labels_vector[0].tolist(), 'cell_size': cell_sizes_vector})
+    cells_metadata_df = pd.DataFrame({
+        'cell_label': labels_vector[0].tolist(),
+        'cell_radius': cell_radius_vector,
+        'cell_size': cell_sizes_vector,
+        'cx': cell_coords_vector[:, 1],
+        'cy': cell_coords_vector[:, 0]
+    })
 
     # Original Data
     data_df = pd.DataFrame(data_cells)
