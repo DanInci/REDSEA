@@ -30,6 +30,8 @@ def main():
     element_size = config['element_size']  # star or square extension size
     norm_channels = config['norm_channels']
 
+    params_dir = f'BM={boundary_mod}_RC={REDSEAChecker}_Shape={element_shape}_Size={element_size}'
+
     aggregated_data_df = pd.DataFrame()
     aggregated_data_scaled_df = pd.DataFrame()
     aggregated_data_compensated_df = pd.DataFrame()
@@ -47,7 +49,7 @@ def main():
         data_df, data_scaled_df, data_compensated_df, data_compensated_scaled_df = compensation
 
         # output compensation results
-        compensation_output_dir = os.path.join(output_dir, image)
+        compensation_output_dir = os.path.join(output_dir, image, params_dir)
         if not os.path.exists(compensation_output_dir):
             os.makedirs(compensation_output_dir)
 
@@ -68,7 +70,7 @@ def main():
 
     # output aggregated compensation results
     if aggregated_data_df.shape[0] > 0:
-        aggregated_output_dir = os.path.join(output_dir, 'aggregated')
+        aggregated_output_dir = os.path.join(output_dir, 'aggregated', params_dir)
         if not os.path.exists(aggregated_output_dir):
             os.makedirs(aggregated_output_dir)
 
