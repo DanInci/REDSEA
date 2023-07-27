@@ -9,8 +9,8 @@
 
 
 % Main path for the all the data
-inputPath = 'sampleData_MIBI'; % 'sampleData_cycIF'; %for CyCIF
-outputPath = 'sampleData_MIBI'; % define other folder if wanted
+inputPath = '../../../data/redsea'; % 'sampleData_cycIF'; %for CyCIF
+outputPath = '../../../output/redsea'; % define other folder if wanted
 
 % This is a csv file for your channel labels within
 massDS = dataset('File',[inputPath,'/channels.csv'],'Delimiter',',');
@@ -49,7 +49,8 @@ elementSize = 2;
 % Select channels for REDSEA compensation. Surface markers are recommended
 % boundary compensation codes
 % selected channels to do the boundary compensation
-normChannels = {'CD4';'CD56';'CD21 (CR2)';'CD163';'CD68';'CD3';'CD20';'CD8a'}; %for MIBI
+normChannels = {'B2M','CA9','CD11c','CD14','CD15','CD16','CD163','CD20','CD206','CD27','CD303','CD33','CD38','CD3e','CD4','CD40','CD45RA','CD45RO','CD68','CD7','CD8a','CDH1','FOXP3','GZMB','HLA_DR','ICOS','IDO1','Ki67','LAG3','MPO','PDGFRB','PD_1','PD_L1','SMA','TCF7','VISTA','c_PARP'};
+%normChannels = {'CD4';'CD56';'CD21 (CR2)';'CD163';'CD68';'CD3';'CD20';'CD8a'}; %for MIBI
 %normChannels = {'x7500y3500_1700_DAPI';'x7500y3500_1700_CD3';'x7500y3500_1700_CD4';'x7500y3500_1700_CD8a';'x7500y3500_1700_CD11b';'x7500y3500_1700_CD20';'x7500y3500_1700_CD45';'x7500y3500_1700_CD68'}; %for CyCIF
 [~, normChannelsInds] = ismember(normChannels,massDS.Label);
 channelNormIdentity = zeros(length(massDS.Label),1);
@@ -132,7 +133,7 @@ for p=1:length(images)
     % clustered
 
     % in order to remove positive nuclear filter replace with -> ones(labelNum,1);
-    labelIdentityNew2 = labelIdentityNew([1:end-1]); % fix bug resulting from previous script
+    labelIdentityNew2 = ones(labelNum,1); % labelIdentityNew([1:end-1]); % fix bug resulting from previous script
     sumDataScaleSizeInClusterChannels = sum(dataScaleSize(:,clusterChannelsInds),2);
     labelIdentityNew2(sumDataScaleSizeInClusterChannels<0.1) = 2;
     
