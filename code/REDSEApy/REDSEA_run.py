@@ -2,10 +2,12 @@ import argparse
 import os
 import json
 import numpy as np
+import pandas as pd
+
 from REDSEA import run_compensation
 
 def main():
-    parser = argparse.ArgumentParser(description='STELLAR')
+    parser = argparse.ArgumentParser(description='REDSEA')
     parser.add_argument('--base_path', type=str, required=True,
                         help='configuration_path')
     args = parser.parse_args()
@@ -28,6 +30,11 @@ def main():
     element_size = config['element_size']  # star or square extension size
     norm_channels = config['norm_channels']
 
+    aggregated_data_df = pd.DataFrame()
+    aggregated_data_scaled_df = pd.DataFrame()
+    aggregated_data_compensated_df = pd.DataFrame()
+    aggregated_data_compensated_scaled_df = pd.DataFrame()
+
     images = np.sort([f for f in os.listdir(image_dir)])
     for image in images:
         tiff_path = os.path.join(image_dir, image)
@@ -37,17 +44,38 @@ def main():
         compensation = run_compensation(channels_path, tiff_path, mask_path, norm_channels,
                          boundary_mod, REDSEAChecker, element_shape, element_size)
 
-        data_full_df, data_scale_size_full_df, data_compensated_full_df, data_compensated_scale_size_full_df = compensation
+        data_df, data_scaled_df, data_compensated_df, data_compensated_scaled_df = compensation
 
         # output compensation results
         compensation_output_dir = os.path.join(output_dir, image)
         if not os.path.exists(compensation_output_dir):
             os.makedirs(compensation_output_dir)
 
-        data_full_df.to_csv(os.path.join(compensation_output_dir, 'data.csv'), index=False)
-        data_scale_size_full_df.to_csv(os.path.join(compensation_output_dir, 'data_scaled.csv'), index=False)
-        data_compensated_full_df.to_csv(os.path.join(compensation_output_dir, 'data_compensated.csv'), index=False)
-        data_compensated_scale_size_full_df.to_csv(os.path.join(compensation_output_dir, 'data_compensated_scaled.csv'), index=False)
+        data_df.to_csv(os.path.join(compensation_output_dir, 'data.csv'), index=False)
+        data_scaled_df.to_csv(os.path.join(compensation_output_dir, 'data_scaled.csv'), index=False)
+        data_compensated_df.to_csv(os.path.join(compensation_output_dir, 'data_compensated.csv'), index=False)
+        data_compensated_scaled_df.to_csv(os.path.join(compensation_output_dir, 'data_compensated_scaled.csv'), index=False)
+
+        data_df['image_name'] = image
+        data_scaled_df['image_name'] = image
+        data_compensated_df['image_name'] = image
+        data_compensated_scaled_df['image_name'] = image
+
+        aggregated_data_df = pd.concat([aggregated_data_df, data_df], axis=0)
+        aggregated_data_scaled_df = pd.concat([aggregated_data_scaled_df, data_scaled_df], axis=0)
+        aggregated_data_compensated_df = pd.concat([aggregated_data_compensated_df, data_compensated_df], axis=0)
+        aggregated_data_compensated_scaled_df = pd.concat([aggregated_data_compensated_scaled_df, data_compensated_scaled_df], axis=0)
+
+    # output aggregated compensation results
+    if aggregated_data_df.shape[0] > 0:
+        aggregated_output_dir = os.path.join(output_dir, 'aggregated')
+        if not os.path.exists(aggregated_output_dir):
+            os.makedirs(aggregated_output_dir)
+
+        aggregated_data_df.to_csv(os.path.join(aggregated_output_dir, 'data.csv'), index=False)
+        aggregated_data_scaled_df.to_csv(os.path.join(aggregated_output_dir, 'data_scaled.csv'), index=False)
+        aggregated_data_compensated_df.to_csv(os.path.join(aggregated_output_dir, 'data_compensated.csv'), index=False)
+        aggregated_data_compensated_scaled_df.to_csv(os.path.join(aggregated_output_dir, 'data_compensated_scaled.csv'), index=False)
 
 
 if __name__ == '__main__':

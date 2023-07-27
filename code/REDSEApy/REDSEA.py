@@ -111,7 +111,7 @@ def run_compensation(channels_path, tiff_path, mask_path, norm_channels,
 
 
 if __name__ == "__main__":
-    EXPERIMENT_PATH = '/home/dani/Documents/Thesis/Methods/IMCBenchmark/methods/REDSEA/code/sampleData_MIBI'
+    EXPERIMENT_PATH = '../sampleData_MIBI'
     channels_path = os.path.join(EXPERIMENT_PATH, 'channels.csv')
     tiff_path = os.path.join(EXPERIMENT_PATH, 'images/Point1')
     masks_path = os.path.join(EXPERIMENT_PATH, 'masks/Point1')
