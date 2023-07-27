@@ -62,24 +62,34 @@ end
 % default=0 for not, 1 for plotting.
 % Note that if multiple channels selected (in normChannels), to plot out all
 % the sanity plots need long time.
-plotSanityPlots = 1;
+plotSanityPlots = 0;
 
 %%
 mkdir(pathResults);
 
-for p=1:4
-    disp(['point',num2str(p)]);
-    pointNumber = p;
+
+contents = dir(pathTiff);
+images = cell(0);
+
+for i = 1:length(contents)
+    if contents(i).isdir && ~strcmp(contents(i).name, '.') && ~strcmp(contents(i).name, '..')
+        images{end+1} = contents(i).name;
+    end
+end
+
+for p=1:length(images)
+    image = char(images(p));
+    disp(image);
     % load tiffs to recreate countsNoNoise
     for i=1:length(massDS.Label)
-        t = imread([pathTiff, '/Point', num2str(pointNumber), '/', massDS.Label{i}, '.tiff']); %mind the .tif and .tiff
+        t = imread([pathTiff, '/', image, '/', massDS.Label{i}, '.tiff']); %mind the .tif and .tiff
         d = double(t);
         % imshow(d)
         countsNoNoise(:,:,i) = d;
     end
         
     % load segmentation file
-    load([pathMask, '/Point', num2str(pointNumber), '.mat']);
+    load([pathMask, '/', num2str(image), '.mat']);
     labelNum = max(max(newLmod)); 
     channelNum = length(massDS);
     stats = regionprops(newLmod,'Area','PixelIdxList'); % Stats on cell size. Region props is DF with cell location by count
@@ -147,10 +157,10 @@ for p=1:4
     % dataScaleSizeStdL = [labelVec,dataScaleSizeCellsStd];
 
     % channelLabelsForFCS = ['cellLabelInImage';'cellSize';massDS.Label];
-    channelLabelsForFCS = ['cellLabelInImage';'cellSize';massDS.Label;'PointNum'];
+    channelLabelsForFCS = ['cellLabelInImage';'cellSize';massDS.Label;'ImageNum'];
     
     %% output
-    outputPath = [pathResults,'/Point',num2str(pointNumber),'/BM=',num2str(boundaryMod),'_RC=',num2str(REDSEAChecker),'_Shape=',num2str(elementShape),'_Size=',num2str(elementSize)];
+    outputPath = [pathResults,'/', image,'/BM=',num2str(boundaryMod),'_RC=',num2str(REDSEAChecker),'_Shape=',num2str(elementShape),'_Size=',num2str(elementSize)];
     mkdir(outputPath);
 
     % plot sanity scatter images

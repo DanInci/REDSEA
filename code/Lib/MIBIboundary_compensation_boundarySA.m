@@ -47,7 +47,9 @@ cellPairMap = cellPairMap+cellPairMap';
 cellBoundaryTotal = sum(cellPairMap,1);
 %divide by the total number of cell boundary to get the fractions
 cellBoundaryTotalMatrix = repmat(cellBoundaryTotal',[1 cellNum]);
-cellPairNorm = REDSEAChecker*eye(cellNum) - cellPairMap./cellBoundaryTotalMatrix;
+cellPairDivided = cellPairMap./cellBoundaryTotalMatrix;
+cellPairDivided(isnan(cellPairDivided)) = 0; %fix replace any NaN with 0
+cellPairNorm = REDSEAChecker*eye(cellNum) - cellPairDivided;
 
 
 %% calculate the signals from pixels along the boundary of the cells
