@@ -29,7 +29,7 @@ def MIBIboundary_compensation_boundarySA(newLmod, data, counts_no_noise, channel
     cell_pair_norm = np.transpose(cell_pair_norm)  # this is a weird bug in python, need to transpose
 
     # compute signals from pixels along the boundary of cells
-    MIBIdataNearEdge1 = compute_pixels_near_edge(newLmod, counts_no_noise, n_cells, n_channels, element_shape, element_size)
+    MIBIdataNearEdge1, cell_compensated_area_vector = compute_pixels_near_edge(newLmod, counts_no_noise, n_cells, n_channels, element_shape, element_size)
 
     # perform signal compensation on the cell boundaries
     MIBIdataNorm2 = np.transpose(np.dot(np.transpose(MIBIdataNearEdge1), cell_pair_norm))
@@ -45,7 +45,7 @@ def MIBIboundary_compensation_boundarySA(newLmod, data, counts_no_noise, channel
     MIBIdataNorm2 = data * np.transpose(np.tile(rev_channel_norm_identity, (1, n_cells))) + \
                     MIBIdataNorm2 * np.transpose(np.tile(channel_norm_identity, (1, n_cells)))
 
-    return MIBIdataNorm2
+    return MIBIdataNorm2, cell_compensated_area_vector
 
 
 # this function is for computing cell-2-cell contact matrix
@@ -95,6 +95,7 @@ def create_cell_contact_matrix(newLmod):
 def compute_pixels_near_edge(newLmod, counts_no_noise, n_cells, n_channels, element_shape, element_size):
     [n_row, n_col] = newLmod.shape
     MIBIdataNearEdge1 = np.zeros((n_cells, n_channels))
+    cell_compensated_area_vector = np.zeros(n_cells)
 
     def is_inside(x, y):
         return 0 <= x < n_row and 0 <= y < n_col
@@ -111,9 +112,11 @@ def compute_pixels_near_edge(newLmod, counts_no_noise, n_cells, n_channels, elem
     ############
 
     # start the boundary region selection and count extraction
+    cells_corrected_pixels_percent = []
     for i in tqdm(range(n_cells), desc='Running boundarySA cell compensation ...'):
         label = i + 1  # python problem
         [temp_row, temp_col] = np.where(newLmod == label)
+        no_corrected_pixels = 0
 
         # sequence in row not col, should not affect the code
         for j in range(len(temp_row)):
@@ -137,6 +140,9 @@ def compute_pixels_near_edge(newLmod, counts_no_noise, n_cells, n_channels, elem
             label_in_shape = [newLmod[filtered_shape_coords[k][0], filtered_shape_coords[k][1]] for k in range(len(filtered_shape_coords))]
 
             if 0 in label_in_shape:
+                no_corrected_pixels += 1
                 MIBIdataNearEdge1[i, :] = MIBIdataNearEdge1[i, :] + counts_no_noise[temp_row[j], temp_col[j], :]
 
-    return MIBIdataNearEdge1
+        cell_compensated_area_vector[i] = no_corrected_pixels
+
+    return MIBIdataNearEdge1, cell_compensated_area_vector

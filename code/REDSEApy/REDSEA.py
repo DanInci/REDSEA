@@ -50,10 +50,11 @@ def run_compensation(channels_path, tiff_path, mask_path, norm_channels,
     if boundary_mod == 1:
         # MIBIboundary_compensation_wholeCellSA(newLmod,MIBIdata,channelNormIdentity,REDSEAChecker)
         data_compensated = MIBIboundary_compensation_wholeCellSA(newLmod, data, channel_norm_identity, REDSEAChecker)
+        cell_compensated_area_vector = cell_sizes  # for whole cell compensation, assume all pixel area is affected
     elif boundary_mod == 2:
         # MIBIboundary_compensation_boundarySA(newLmod,data,countsNoNoise,channelNormIdentity,elementShape,elementSize,REDSEAChecker)
-        data_compensated = MIBIboundary_compensation_boundarySA(newLmod, data, counts_no_noise, channel_norm_identity,
-                                                                element_shape, element_size, REDSEAChecker)
+        data_compensated, cell_compensated_area_vector = MIBIboundary_compensation_boundarySA(newLmod, data, counts_no_noise, channel_norm_identity,
+                                                                                              element_shape, element_size, REDSEAChecker)
     else:
         raise NotImplementedError(
             "boundary_mod can only be set to 1 (whole cell compensation) or 2 (boundary compensation)")
@@ -96,6 +97,7 @@ def run_compensation(channels_path, tiff_path, mask_path, norm_channels,
         'cell_label': labels_vector[0].tolist(),
         'cell_radius': cell_radius_vector,
         'cell_size': cell_sizes_vector,
+        'cell_compensated_area': cell_compensated_area_vector,
         'cx': cell_coords_vector[:, 1],
         'cy': cell_coords_vector[:, 0]
     })
