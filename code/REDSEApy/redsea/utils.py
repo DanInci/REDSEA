@@ -1,7 +1,7 @@
 import glob
 import numpy as np
 import skimage.measure
-import matplotlib.pyplot as plt
+from PIL import Image
 
 
 def is_member(a, b):
@@ -24,7 +24,7 @@ def load_images(tiff_path, channels):
 
     array_list = []
     for channel in channels:
-        t = plt.imread(tiff_path + '/' + str(channel) + end)
+        t = np.asarray(Image.open(tiff_path + '/' + str(channel) + end))
         array_list.append(t)
 
     counts_no_noise = np.stack(array_list, axis=2)  # count matrices in the image
