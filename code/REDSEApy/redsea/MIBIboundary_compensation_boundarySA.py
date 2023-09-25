@@ -2,6 +2,8 @@ import numpy as np
 import skimage.measure
 import skimage.morphology
 from tqdm import tqdm
+from .utils import get_highest_cell_id
+
 
 # 1 newLmod (segmentation mask matrix)
 # data
@@ -10,7 +12,7 @@ from tqdm import tqdm
 # element_shape, element_size
 # REDSEAChecker: subtract, reinforce selection
 def MIBIboundary_compensation_boundarySA(newLmod, data, counts_no_noise, channel_norm_identity, element_shape, element_size, REDSEAChecker):
-    n_cells = np.max(newLmod)
+    n_cells = get_highest_cell_id(newLmod)
     n_channels = len(channel_norm_identity)
 
     # compute cell-2-cell contact matrix
@@ -51,7 +53,7 @@ def MIBIboundary_compensation_boundarySA(newLmod, data, counts_no_noise, channel
 # this function is for computing cell-2-cell contact matrix
 def create_cell_contact_matrix(newLmod):
     [n_row, n_col] = newLmod.shape
-    n_cells = np.max(newLmod)
+    n_cells = get_highest_cell_id(newLmod)
     cell_pair_map = np.zeros((n_cells, n_cells))  # cell-cell shared perimeter matrix container
 
     ## need to add border to the segmentation mask (newLmod in this case)

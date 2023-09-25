@@ -41,7 +41,19 @@ def run_compensation(channels_path, tiff_path, mask_path, norm_channels,
 
     # Define the boundary region
     newLmod = loadmat(mask_path)['newLmod']
-    n_labels = np.max(newLmod)  # how many labels/cells
+    n_labels = get_highest_cell_id(newLmod)
+    n_cells = get_no_cells(newLmod)
+
+    # if the mask contains sparse cell ids
+    # do a mapping, so they are consecutive
+    reversed_cell_labels_map = None
+    if n_labels != n_cells:
+        newLmod, cell_label_map = map_cell_labels(newLmod)
+        reversed_cell_labels_map = {v: k for k, v in cell_label_map.items()}
+        n_labels = get_highest_cell_id(newLmod)
+
+    # make sure that after this step the mask contains consecutive cell ids
+    assert get_highest_cell_id(newLmod) == get_no_cells(newLmod)
 
     # this part extract counts data from the whole cell regions, for each individual cells etc
     data, data_scale_size, cell_sizes, cell_radius, cell_coords = extract_cell_information(newLmod, counts_no_noise)
@@ -81,6 +93,9 @@ def run_compensation(channels_path, tiff_path, mask_path, norm_channels,
     labels_vector = np.where(label_identity == 1)
     labels_vector = [item + 1 for item in labels_vector]  # python indexing difference need to add 1
 
+    # map the cell ids back to the original
+    labels_vector = labels_vector[0].tolist() if reversed_cell_labels_map is None else [reversed_cell_labels_map[label] for label in labels_vector[0]]
+
     # get cell radius
     cell_radius_vector = cell_radius[label_identity == 1]
     cell_radius_vector = [item for sublist in cell_radius_vector for item in sublist]  # flat the list
@@ -94,7 +109,7 @@ def run_compensation(channels_path, tiff_path, mask_path, norm_channels,
 
     # Cell Metadata
     cells_metadata_df = pd.DataFrame({
-        'cell_label': labels_vector[0].tolist(),
+        'cell_label': labels_vector,
         'cell_radius': cell_radius_vector,
         'cell_size': cell_sizes_vector,
         'cell_compensated_area': cell_compensated_area_vector,

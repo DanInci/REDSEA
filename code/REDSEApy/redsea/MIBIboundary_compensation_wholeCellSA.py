@@ -1,4 +1,5 @@
 import numpy as np
+from .utils import get_highest_cell_id
 
 
 # 1 newLmod (segmentation mask matrix)
@@ -6,7 +7,7 @@ import numpy as np
 # channel_norm_identity (plots, leave out for now)
 # REDSEAChecker: subtract, reinforce selection
 def MIBIboundary_compensation_wholeCellSA(newLmod, MIBIdata, channel_norm_identity, REDSEAChecker):
-    n_cells = np.max(newLmod)
+    n_cells = get_highest_cell_id(newLmod)
 
     # compute cell-2-cell contact matrix
     cell_pair_map = create_cell_contact_matrix(newLmod)
@@ -41,7 +42,7 @@ def MIBIboundary_compensation_wholeCellSA(newLmod, MIBIdata, channel_norm_identi
 # this function is for computing cell-2-cell contact matrix
 def create_cell_contact_matrix(newLmod):
     [n_row, n_col] = newLmod.shape
-    n_cells = np.max(newLmod)
+    n_cells = get_highest_cell_id(newLmod)
     cell_pair_map = np.zeros((n_cells, n_cells))  # cell-cell shared perimeter matrix container
 
     ## need to add border to the segmentation mask (newLmod in this case)

@@ -4,6 +4,14 @@ import skimage.measure
 from PIL import Image
 
 
+def get_no_cells(newLmod):
+    return len(np.unique(newLmod)) - 1  # how many labels/cells
+
+
+def get_highest_cell_id(newLmod):
+    return np.max(newLmod)
+
+
 def is_member(a, b):
     bind = {}
     for i, elt in enumerate(b):
@@ -34,7 +42,7 @@ def load_images(tiff_path, channels):
 
 
 def extract_cell_information(newLmod, counts_no_noise):
-    n_cells = np.max(newLmod)  # how many labels/cells
+    n_cells = get_highest_cell_id(newLmod)  # how many labels/cells
     n_channels = counts_no_noise.shape[2]  # how many channels
 
     ### make empty container matrices
@@ -57,3 +65,21 @@ def extract_cell_information(newLmod, counts_no_noise):
         cell_coords[i] = stats[i].centroid  # cell coords
 
     return data, data_scale_size, cell_sizes, cell_radius, cell_coords
+
+
+def map_cell_labels(newLmod):
+    n_cells = get_no_cells(newLmod)
+    cell_label_map = {}
+
+    target_label = original_label = 1
+    while target_label <= n_cells:
+        while not np.any(newLmod == original_label):
+            original_label += 1
+
+        newLmod[newLmod == original_label] = target_label
+        cell_label_map[original_label] = target_label
+
+        original_label += 1
+        target_label += 1
+
+    return newLmod, cell_label_map
